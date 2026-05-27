@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Black Friday net-revenue calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --ink:#15140F;
+    --muted:#6B675D;
+    --line:#E4E0D6;
+    --orange:#FF5A1F;
+    --red:#D81E2C;
+    --green:#0E7A4E;
+    --fear-bg:#FBF4F2;
+    --flip-bg:#F3F8F4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.45;
+    padding:clamp(20px,4vw,56px);
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  .eyebrow{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--ink);padding-bottom:14px;margin-bottom:30px;
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)
+  }
+  .eyebrow strong{color:var(--ink);font-weight:600}
+  h1{
+    font-family:"Fraunces",serif;font-weight:600;
+    font-size:clamp(30px,5vw,54px);line-height:1.02;letter-spacing:-.01em;
+    max-width:18ch;margin-bottom:14px
+  }
+  h1 em{font-style:italic;color:var(--orange)}
+  .sub{color:var(--muted);max-width:62ch;font-size:clamp(15px,1.5vw,17px);margin-bottom:34px}
+
+  /* input strip */
+  .inputs{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:0;
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:#fff;margin-bottom:34px
+  }
+  .field{padding:16px 18px;border-right:1px solid var(--line)}
+  .field:last-child{border-right:none}
+  .field .lab{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .field .row{display:flex;align-items:baseline;gap:4px}
+  .field input{
+    width:100%;border:none;background:transparent;font-family:"Fraunces",serif;
+    font-size:26px;font-weight:600;color:var(--ink);outline:none;-moz-appearance:textfield
+  }
+  .field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field .unit{font-family:"Fraunces",serif;font-size:18px;color:var(--muted);font-weight:500}
+  .group-tag{grid-column:1/-1;display:none}
+
+  /* panels */
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .panel{border-radius:16px;padding:30px 30px 28px;border:1px solid var(--line)}
+  .panel.fear{background:var(--fear-bg)}
+  .panel.flip{background:var(--flip-bg)}
+  .ptag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .ph{font-family:"Fraunces",serif;font-size:23px;font-weight:600;margin-bottom:22px;letter-spacing:-.01em}
+
+  .big{font-family:"Fraunces",serif;font-weight:600;line-height:1;letter-spacing:-.02em}
+  .fear .big{font-size:clamp(46px,7vw,72px);color:var(--ink)}
+  .flip .verdictnum{font-size:clamp(40px,6vw,60px);color:var(--green)}
+  .biglab{font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:22px}
+
+  .ledger{border-top:1px solid var(--line);margin-top:4px}
+  .ledger .li{display:flex;justify-content:space-between;align-items:baseline;
+    padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .ledger .li .k{color:var(--muted)}
+  .ledger .li .v{font-variant-numeric:tabular-nums;font-weight:600}
+  .ledger .li.neg .v{color:var(--red)}
+  .ledger .li.tot{border-bottom:none;padding-top:13px}
+  .ledger .li.tot .k{color:var(--ink);font-weight:600}
+  .ledger .li.tot .v{font-family:"Fraunces",serif;font-size:20px}
+  .ledger .li.gain .v{color:var(--green)}
+
+  .note{font-size:13.5px;color:var(--muted);margin-top:18px;line-height:1.5}
+  .note b{color:var(--ink);font-weight:600}
+
+  .be{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .be .num{font-family:"Fraunces",serif;font-size:clamp(40px,6vw,58px);font-weight:600;line-height:1;letter-spacing:-.02em}
+  .be .txt{font-size:14px;color:var(--muted);max-width:20ch}
+
+  /* meter */
+  .meter{position:relative;height:14px;border-radius:8px;background:#E7EADF;margin:24px 0 8px;overflow:visible}
+  .meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--green);transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .meter .thresh{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--ink)}
+  .meter .thlab{position:absolute;top:-26px;transform:translateX(-50%);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .meterlabs{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:18px}
+
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;padding:7px 13px;border-radius:999px;margin-bottom:18px}
+  .pill.pos{background:var(--green);color:#fff}
+  .pill.neg{background:var(--red);color:#fff}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7}
+
+  .footer{margin-top:34px;display:grid;grid-template-columns:1.4fr 1fr;gap:30px;border-top:1px solid var(--ink);padding-top:22px}
+  .footer h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .tips{list-style:none;font-size:14px;color:var(--ink)}
+  .tips li{padding-left:22px;position:relative;margin-bottom:10px;line-height:1.5}
+  .tips li:before{content:"";position:absolute;left:0;top:9px;width:9px;height:1.5px;background:var(--orange)}
+  .fineprint{font-size:12px;color:var(--muted);line-height:1.6}
+
+  @media(max-width:860px){
+    .inputs{grid-template-columns:repeat(2,1fr)}
+    .field{border-bottom:1px solid var(--line)}
+    .field:nth-child(2n){border-right:none}
+    .panels{grid-template-columns:1fr}
+    .footer{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span><strong>Black Friday 2026</strong> · partner net-revenue model</span><span>two ways to read the same deal</span></div>
+
+  <h1>Your math is right. <em>It is also incomplete.</em></h1>
+  <p class="sub">The net-payout view is real, and partners are not misreading it. But it quietly assumes every Black Friday booking would have come anyway at full price. Adjust the stack and the window below, and watch where the deal actually lands.</p>
+
+  <div class="inputs" id="inputs">
+    <div class="field"><span class="lab">Rack rate</span><div class="row"><span class="unit">€</span><input id="rack" type="number" value="100" min="1" step="1"></div></div>
+    <div class="field"><span class="lab">BF discount</span><div class="row"><input id="bf" type="number" value="30" min="0" max="90" step="1"><span class="unit">%</span></div></div>
+    <div class="field"><span class="lab">Commission</span><div class="row"><input id="comm" type="number" value="15" min="0" max="40" step="1"><span class="unit">%</span></div></div>
+    <div class="field"><span class="lab">Genius</span><div class="row"><input id="gen" type="number" value="10" min="0" max="30" step="1"><span class="unit">%</span></div></div>
+    <div class="field"><span class="lab">Occupancy without deal</span><div class="row"><input id="base" type="number" value="40" min="0" max="100" step="1"><span class="unit">%</span></div></div>
+    <div class="field"><span class="lab">Occupancy with deal</span><div class="row"><input id="deal" type="number" value="78" min="0" max="100" step="1"><span class="unit">%</span></div></div>
+  </div>
+
+  <div class="panels">
+    <!-- FEAR -->
+    <div class="panel fear">
+      <div class="ptag">1 · What the partner sees</div>
+      <div class="ph">Net payout per booked night</div>
+      <div class="big" id="netPay">€53.55</div>
+      <div class="biglab"><span id="lossPct">46.5%</span> of the rack rate gone before the room is even cleaned.</div>
+      <div class="ledger">
+        <div class="li"><span class="k">Rack rate</span><span class="v" id="L_rack">€100.00</span></div>
+        <div class="li neg"><span class="k">Black Friday discount</span><span class="v" id="L_bf">− €30.00</span></div>
+        <div class="li neg"><span class="k">Commission</span><span class="v" id="L_comm">− €10.50</span></div>
+        <div class="li neg"><span class="k">Genius</span><span class="v" id="L_gen">− €5.95</span></div>
+        <div class="li tot"><span class="k">Net payout</span><span class="v" id="L_net">€53.55</span></div>
+      </div>
+      <p class="note"><b>Validate the fear first.</b> The stack is genuine. This is the number partners carry into the decision, and dismissing it loses the room.</p>
+    </div>
+
+    <!-- FLIP -->
+    <div class="panel flip">
+      <div class="ptag">2 · What changes the answer</div>
+      <div class="ph">Did the booking fill an empty night, or discount a full one?</div>
+
+      <div class="be"><span class="num" id="beNum">37%</span><span class="txt">of promo bookings must be nights you would otherwise have left empty.</span></div>
+
+      <div class="meter">
+        <div class="fill" id="meterFill" style="width:49%"></div>
+        <div class="thresh" id="meterTh" style="left:37%"></div>
+        <div class="thlab" id="meterThLab" style="left:37%">break-even</div>
+      </div>
+      <div class="meterlabs"><span>0% incremental</span><span>100% incremental</span></div>
+
+      <span class="pill pos" id="pill"><span class="dot"></span><span id="pillTxt">Net positive</span></span>
+
+      <div class="ledger">
+        <div class="li neg"><span class="k">Margin given up on <span id="cannN">40</span> nights you would have sold anyway</span><span class="v" id="cannEur">− €1,258</span></div>
+        <div class="li gain"><span class="k">Revenue gained on <span id="incN">38</span> nights that would have sat empty</span><span class="v" id="incEur">+ €2,035</span></div>
+        <div class="li tot gain"><span class="k">Net change per 100 room-nights</span><span class="v" id="netDelta">+ €777</span></div>
+      </div>
+      <p class="note">Your projected incremental share is <b id="incPct">49%</b>, which is <b id="aboveBelow">above</b> the break-even line. Revenue moves from <b id="rev0">€3,400</b> to <b id="rev1">€4,177</b> across the same 100 available room-nights.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>
+      <h4>The best way to use the deal</h4>
+      <ul class="tips">
+        <li>Point Black Friday at your soft, low-occupancy dates, not the weekends you already fill. Incremental headroom is the whole game.</li>
+        <li>Use length-of-stay or advance-purchase conditions so the discount pulls in net-new demand instead of rewarding guests who were booking anyway.</li>
+        <li>Black Friday is when late-fill and international demand peaks. That is exactly the demand least likely to cannibalise your full-price base.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Model notes</h4>
+      <p class="fineprint">Net payout stacks discount, then commission, then Genius, matching how partners experience it. The no-deal baseline is rack minus commission, so Genius is treated as part of the promo stack. That sets break-even near the 38% incremental threshold seen in partner research. Loosen that assumption and break-even falls toward 30%.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const eur = n => "€" + n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0});
+  const eur2 = n => "€" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  function calc(){
+    const R = Math.max(1, +$("rack").value||0);
+    const d = (+$("bf").value||0)/100;
+    const c = (+$("comm").value||0)/100;
+    const g = (+$("gen").value||0)/100;
+    let ob = (+$("base").value||0)/100;
+    let od = (+$("deal").value||0)/100;
+    ob = Math.min(1,Math.max(0,ob));
+    od = Math.min(1,Math.max(0,od));
+
+    // stack
+    const afterBF = R*(1-d);
+    const bfCut = R*d;
+    const commCut = afterBF*c;
+    const afterComm = afterBF - commCut;
+    const genCut = afterComm*g;
+    const net = afterComm - genCut;             // N_bf
+    const full = R*(1-c);                        // N_full baseline
+    const lossPct = (1 - net/R)*100;
+
+    // break-even incremental fraction
+    const be = full>0 ? Math.max(0, 1 - net/full) : 0;
+
+    // window over 100 room-nights
+    const cap = 100;
+    const cannN = ob*cap;                         // nights sold anyway
+    const incN = Math.max(0,(od-ob))*cap;         // incremental nights
+    const cannLoss = cannN*(full-net);
+    const incGain  = incN*net;
+    const delta = incGain - cannLoss;
+    const rev0 = ob*cap*full;
+    const rev1 = od*cap*net;
+
+    const incFrac = od>0 ? Math.max(0,(od-ob)/od) : 0;
+    const pass = incFrac >= be;
+
+    // FEAR panel
+    $("netPay").textContent = eur2(net);
+    $("lossPct").textContent = lossPct.toFixed(1)+"%";
+    $("L_rack").textContent = eur2(R);
+    $("L_bf").textContent = "− "+eur2(bfCut);
+    $("L_comm").textContent = "− "+eur2(commCut);
+    $("L_gen").textContent = "− "+eur2(genCut);
+    $("L_net").textContent = eur2(net);
+
+    // FLIP panel
+    $("beNum").textContent = Math.round(be*100)+"%";
+    $("incPct").textContent = Math.round(incFrac*100)+"%";
+    $("cannN").textContent = Math.round(cannN);
+    $("incN").textContent = Math.round(incN);
+    $("cannEur").textContent = "− "+eur(cannLoss);
+    $("incEur").textContent = "+ "+eur(incGain);
+    $("netDelta").textContent = (delta>=0?"+ ":"− ")+eur(Math.abs(delta));
+    $("rev0").textContent = eur(rev0);
+    $("rev1").textContent = eur(rev1);
+    $("aboveBelow").textContent = pass ? "above" : "below";
+
+    // meter
+    $("meterFill").style.width = Math.min(100,incFrac*100)+"%";
+    $("meterFill").style.background = pass ? "var(--green)" : "var(--red)";
+    $("meterTh").style.left = Math.min(100,be*100)+"%";
+    $("meterThLab").style.left = Math.min(100,be*100)+"%";
+
+    const pill = $("pill");
+    pill.className = "pill " + (pass?"pos":"neg");
+    $("pillTxt").textContent = pass ? "Net positive" : "Net negative";
+
+    const netDeltaEl = $("netDelta");
+    netDeltaEl.parentElement.className = "li tot " + (delta>=0?"gain":"neg");
+  }
+  document.querySelectorAll("#inputs input").forEach(el=>{
+    el.addEventListener("input",calc);
+  });
+  calc();
+</script>
+</body>
+</html>
